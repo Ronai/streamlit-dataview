@@ -37,7 +37,7 @@ st.set_page_config(page_title=apptitle, page_icon=":eyeglasses:")
 detectorlist = ['H1','L1', 'V1']
 
 # Title the app
-st.title('Gravitational Wave Quickview')
+st.title('Visualização Rápida de Ondas Gravitacionais')
 
 st.markdown("""
  * Use the menu at left to select data and set plot parameters
@@ -67,24 +67,24 @@ st.sidebar.markdown("## Select Data Time and Detector")
 eventlist = get_eventlist()
 
 #-- Set time by GPS or event
-select_event = st.sidebar.selectbox('How do you want to find data?',
-                                    ['By event name', 'By GPS'], key='datatype')
+select_event = st.sidebar.selectbox('Como você deseja localizar os dados?',
+                                    ['Pelo nome do evento', 'Pelo GPS'], key='datatype')
 
-if select_event == 'By GPS':
+if select_event == 'Pelo GPS':
     # -- Set a GPS time:        
-    str_t0 = st.sidebar.text_input('GPS Time', '1126259462.4', key='gpstime')    # -- GW150914
+    str_t0 = st.sidebar.text_input('Tempo GPS', '1126259462.4', key='gpstime')    # -- GW150914
     t0 = float(str_t0)
 
     st.sidebar.markdown("""
-    Example times in the H1 detector:
+    Exemplos de instantes de observação no detector H1:
     * 1126259462.4    (GW150914) 
     * 1187008882.4    (GW170817) 
-    * 1128667463.0    (hardware injection)
+    * 1128667463.0    (injeção de hardware)
     * 1132401286.33   (Koi Fish Glitch) 
     """)
 
 else:
-    chosen_event = st.sidebar.selectbox('Select Event', eventlist, key='eventchoice')
+    chosen_event = st.sidebar.selectbox('Event selecionado', eventlist, key='eventchoice')
     t0 = datasets.event_gps(chosen_event)
     detectorlist = list(datasets.event_detectors(chosen_event))
     detectorlist.sort()
@@ -95,11 +95,11 @@ else:
     try:
         jsoninfo = fetch_event_json(chosen_event)
         for name, nameinfo in jsoninfo['events'].items():        
-            st.write('Mass 1:', nameinfo['mass_1_source'], 'M$_{\odot}$')
-            st.write('Mass 2:', nameinfo['mass_2_source'], 'M$_{\odot}$')
+            st.write('Massa 1:', nameinfo['mass_1_source'], 'M$_{\odot}$')
+            st.write('Massa 2:', nameinfo['mass_2_source'], 'M$_{\odot}$')
             st.write('Network SNR:', int(nameinfo['network_matched_filter_snr']))
             eventurl = 'https://gwosc.org/eventapi/html/event/{}'.format(chosen_event)
-            st.markdown('Event page: {}'.format(eventurl))
+            st.markdown('Página do Evento: {}'.format(eventurl))
             st.write('\n')
     except:
         pass
@@ -111,37 +111,37 @@ detector = st.sidebar.selectbox('Detector', detectorlist, key='ifochoice')
 # -- Select for high sample rate data
 fs = 4096
 maxband = 1200
-high_fs = st.sidebar.checkbox('Full sample rate data', key='samplerate')
+high_fs = st.sidebar.checkbox('Dados com a taxa de amostragem original', key='samplerate')
 if high_fs:
     fs = 16384
     maxband = 2000
 
 
 # -- Create sidebar for plot controls
-st.sidebar.markdown('## Set Plot Parameters')
-dtboth = st.sidebar.slider('Time Range (seconds)', 0.1, 8.0, 1.0, key='timerange')  # min, max, default
+st.sidebar.markdown('## Configurar os parâmetros do gráfico')
+dtboth = st.sidebar.slider('Intervalo de tempo (segundos)', 0.1, 8.0, 1.0, key='timerange')  # min, max, default
 dt = dtboth / 2.0
 
-st.sidebar.markdown('#### Whitened and band-passed data')
-whiten = st.sidebar.checkbox('Whiten?', value=True)
-freqrange = st.sidebar.slider('Band-pass frequency range (Hz)', min_value=10, max_value=maxband, value=(30,400), key='bandpass')
+st.sidebar.markdown('#### Dados branqueados e filtrados por passa-banda')
+whiten = st.sidebar.checkbox('Branquear os dados??', value=True)
+freqrange = st.sidebar.slider('Faixa de frequências do filtro passa-banda (Hz)', min_value=10, max_value=maxband, value=(30,400), key='bandpass')
 
 
 # -- Create sidebar for Q-transform controls
-st.sidebar.markdown('#### Q-tranform plot')
-vmax = st.sidebar.slider('Colorbar Max Energy', 10, 500, 25, key='colorrange')  # min, max, default
+st.sidebar.markdown('#### Gráfico da transformada Q')
+vmax = st.sidebar.slider('Energia máxima da barra de cores', 10, 500, 25, key='colorrange')  # min, max, default
 qcenter = st.sidebar.slider('Q-value', 5, 120, 5, key='qvalue')  # min, max, default
 qrange = (int(qcenter*0.8), int(qcenter*1.2))
 
 #-- Create a text element and let the reader know the data is loading.
-strain_load_state = st.text('Loading data...this may take a minute')
+strain_load_state = st.text('Carregando os dados... Isso pode levar cerca de um minuto.')
 try:
     strain_data = load_gw(t0, detector, fs)
 except:
-    st.warning('{0} data are not available for time {1}.  Please try a different time and detector pair.'.format(detector, t0))
+    st.warning('{0} Não há dados disponíveis para o instante selecionado. {1}.  Tente selecionar outra combinação de instante de observação e detector.'.format(detector, t0))
     st.stop()
     
-strain_load_state.text('Loading data...done!')
+strain_load_state.text('Carregamento dos dados concluído!')
 
 #-- Make a time series plot
 
@@ -151,7 +151,7 @@ cropend   = t0+0.1
 cropstart = t0 - dt
 cropend   = t0 + dt
 
-st.subheader('Raw data')
+st.subheader('Dados brutos')
 center = int(t0)
 strain = deepcopy(strain_data)
 
@@ -160,7 +160,7 @@ st.pyplot(fig1, clear_figure=True)
 
 # -- Try whitened and band-passed plot
 # -- Whiten and bandpass data
-st.subheader('Whitened and Band-passed Data')
+st.subheader('Dados branqueados e filtrados por passa-banda')
 
 minfreq=freqrange[0]
 maxfreq=freqrange[1]+2 # Add 2 to avoid minfreq = maxfreq
@@ -177,71 +177,71 @@ fig3 = bp_cropped.plot()
 st.pyplot(fig3, clear_figure=True)
 
 # -- Allow data download
-download = {'Time':bp_cropped.times, 'Strain':bp_cropped.value}
+download = {'Tempo':bp_cropped.times, 'Strain':bp_cropped.value}
 df = pd.DataFrame(download)
 csv = df.to_csv(index=False)
 b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
 fn =  detector + '-STRAIN' + '-' + str(int(cropstart)) + '-' + str(int(cropend-cropstart)) + '.csv'
-href = f'<a href="data:file/csv;base64,{b64}" download="{fn}">Download Data as CSV File</a>'
+href = f'<a href="data:file/csv;base64,{b64}" download="{fn}">Download Dados como arquivo CSV</a>'
 st.markdown(href, unsafe_allow_html=True)
 
 # -- Make audio file
 st.audio(make_audio_file(bp_cropped), format='audio/wav')
 
 # -- Notes on whitening
-with st.expander("See notes"):
+with st.expander("Veja as notas"):
     st.markdown("""
- * Whitening is a process that re-weights a signal, so that all frequency bins have a nearly equal amount of noise. 
- * A band-pass filter uses both a low frequency cutoff and a high frequency cutoff, and only passes signals in the frequency band between these values.
+ * O branqueamento (whitening) é um processo que ajusta os pesos das componentes de frequência de um sinal, de modo que o ruído apresente aproximadamente a mesma intensidade em todas as faixas de frequência.
+ * Um filtro passa-banda (band-pass filter) utiliza duas frequências de corte, uma inferior e outra superior, permitindo a passagem apenas das componentes do sinal cujas frequências estejam dentro dessa faixa.
 
-See also:
- * [Signal Processing Tutorial](https://share.streamlit.io/jkanner/streamlit-audio/main/app.py)
+Veja também:
+ * [Tutorial de processamento de sinais](https://share.streamlit.io/jkanner/streamlit-audio/main/app.py)
 """)
 
 
-st.subheader('Q-transform')
+st.subheader('Transformada Q')
 
 try:
     hq = strain.q_transform(outseg=(t0-dt, t0+dt), qrange=qrange)
     fig4 = hq.plot()
     ax = fig4.gca()
-    fig4.colorbar(label="Normalised energy", vmax=vmax, vmin=0)
+    fig4.colorbar(label="Energia Normalizada", vmax=vmax, vmin=0)
     ax.grid(False)
     ax.set_yscale('log')
     ax.set_ylim(bottom=15)
     st.pyplot(fig4, clear_figure=True)
 except:
-    st.markdown("Unable to generate Q-transform for these data")
+    st.markdown("Não foi possível gerar a transformada Q para esses dados.")
 
-with st.expander("See notes"):
+with st.expander("Veja as notas"):
 
     st.markdown("""
-A Q-transform plot shows how a signal’s frequency changes with time.
+Um gráfico da transformada Q mostra como a frequência de um sinal varia ao longo do tempo.
 
- * The x-axis shows time
- * The y-axis shows frequency
+* O eixo horizontal (x) representa o tempo.
+* O eixo vertical (y) representa a frequência.
 
-The color scale shows the amount of “energy” or “signal power” in each time-frequency pixel.
+A escala de cores representa a quantidade de energia ou potência do sinal em cada elemento (pixel) do plano tempo-frequência.
 
-A parameter called “Q” refers to the quality factor.  A higher quality factor corresponds to a larger number of cycles in each time-frequency pixel.  
+Um parâmetro denominado Q corresponde ao fator de qualidade. Quanto maior o fator de qualidade, maior o número de ciclos do sinal contidos em cada elemento do plano tempo-frequência.
 
-For gravitational-wave signals, binary black holes are most clear with lower Q values (Q = 5-20), where binary neutron star mergers work better with higher Q values (Q = 80 - 120).
+Na análise de sinais de ondas gravitacionais, os sinais produzidos pela fusão de sistemas binários de buracos negros são geralmente mais bem visualizados com valores menores de Q (Q=5 a 20), enquanto os sinais de fusões de estrelas de nêutrons em sistemas binários são mais bem representados com valores maiores de Q (Q=80 a 120).
 
-See also:
+Veja também:
 
- * [GWpy q-transform](https://gwpy.github.io/docs/latest/examples/timeseries/qscan/)
- * [Reading Time-frequency plots](https://labcit.ligo.caltech.edu/~jkanner/aapt/web/math.html#tfplot)
+ * [Transformada Q GWpy](https://gwpy.github.io/docs/latest/examples/timeseries/qscan/)
+ * [Interpretando gráficos de tempo-frequência](https://labcit.ligo.caltech.edu/~jkanner/aapt/web/math.html#tfplot)
  * [Shourov Chatterji PhD Thesis](https://dspace.mit.edu/handle/1721.1/34388)
 """)
 
 
-st.subheader("About this app")
+st.subheader("Sobre esse aplicativo")
 st.markdown("""
-This app displays data from LIGO, Virgo, and GEO downloaded from
-the Gravitational Wave Open Science Center at https://gwosc.org .
+Este aplicativo exibe dados dos detectores LIGO, Virgo e GEO, 
+baixados do Gravitational Wave Open Science Center (GWOSC), disponível em: https://gwosc.org .
 
 
-You can see how this works in the [Quickview Jupyter Notebook](https://github.com/losc-tutorial/quickview) or 
-[see the code](https://github.com/jkanner/streamlit-dataview).
+Você pode ver como isso funciona no... [Quickview Jupyter Notebook](https://github.com/losc-tutorial/quickview) ou 
+[veja o código](https://github.com/jkanner/streamlit-dataview).
 
 """)
